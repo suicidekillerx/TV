@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ViewSonic IFP7550 Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background-color: #1e1e1e;
+      font-family: 'Consolas', 'Courier New', monospace;
+      color: #d4d4d4;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      height: 35px;
+      background-color: #2d2d2d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10px;
+      border-bottom: 1px solid #1a1a1a;
+      font-size: 0.9rem;
+    }
+
+    .mode-toggle {
+      width: 20px;
+      height: 20px;
+      background-color: #3c3c3c;
+      border-radius: 4px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      border: 1px solid #474747;
+    }
+
+    .mode-toggle::before {
+      content: "⇄";
+      font-size: 10px;
+      color: #d4d4d4;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2fr 2fr 1fr;
+      grid-template-rows: 1fr 1fr 2fr;
+      gap: 10px;
+      padding: 10px;
+      flex: 1;
+      box-sizing: border-box;
+    }
+
+    .grid-item {
+      background-color: #252526;
+      color: #d4d4d4;
+      padding: 15px;
+      border: 1px solid #3c3c3c;
+      overflow: auto;
+    }
+
+    .tv-details {
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+    }
+
+    .device-name {
+      color: #569cd6;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+
+    .device-spec {
+      font-size: 0.8rem;
+      color: #b5cea8;
+      margin: 5px 0;
+      line-height: 1.4;
+    }
+
+    .ressources {
+      grid-column: 2 / 3;
+      grid-row: 1 / 2;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .resource-item {
+      margin-bottom: 10px;
+    }
+
+    .resource-title {
+      font-size: 0.8rem;
+      color: #9cdcfe;
+      margin-bottom: 3px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .progress-container {
+      height: 10px;
+      background-color: #2d2d2d;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      border-radius: 5px;
+    }
+
+    .progress-cpu {
+      background-color: #4ec9b0;
+    }
+
+    .progress-gpu {
+      background-color: #569cd6;
+    }
+
+    .progress-memory {
+      background-color: #dcdcaa;
+    }
+
+    .day-count {
+      grid-column: 3 / 4;
+      grid-row: 1 / 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem;
+    }
+
+    .hour-count {
+      grid-column: 3 / 4;
+      grid-row: 2 / 3;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .counter {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #569cd6;
+      margin-bottom: 5px;
+    }
+
+    .counter-label {
+      font-size: 0.8rem;
+      color: #b5cea8;
+    }
+
+    .logs {
+      grid-column: 1 / 4;
+      grid-row: 3 / 4;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .log-line {
+      margin: 0;
+      white-space: pre;
+    }
+
+    .log-error {
+      color: #f48771;
+    }
+
+    .log-info {
+      color: #9cdcfe;
+    }
+
+    .log-warning {
+      color: #dcdcaa;
+    }
+
+    .colon {
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">VIEWSONIC IFP7550 DASHBOARD</div>
+    <div class="mode-toggle" id="modeToggle"></div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="grid-item tv-details">
+      <div class="device-name">ViewSonic IFP7550</div>
+      <div class="device-spec">75" 4K UHD (3840×2160)</div>
+      <div class="device-spec">Android 9.0 Pie</div>
+      <div class="device-spec">Quad-core 1.8GHz Cortex-A72</div>
+      <div class="device-spec">Mali-T860 MP4 GPU</div>
+      <div class="device-spec">4GB RAM | 32GB Storage</div>
+    </div>
+
+    <div class="grid-item ressources">
+      <div class="resource-item">
+        <div class="resource-title">CPU Usage <span id="cpu-value">38%</span></div>
+        <div class="progress-container">
+          <div class="progress-bar progress-cpu" id="cpu-bar" style="width: 38%"></div>
+        </div>
+      </div>
+      
+      <div class="resource-item">
+        <div class="resource-title">GPU Usage <span id="gpu-value">45%</span></div>
+        <div class="progress-container">
+          <div class="progress-bar progress-gpu" id="gpu-bar" style="width: 45%"></div>
+        </div>
+      </div>
+      
+      <div class="resource-item">
+        <div class="resource-title">Memory <span id="memory-value">2.8/4GB</span></div>
+        <div class="progress-container">
+          <div class="progress-bar progress-memory" id="memory-bar" style="width: 70%"></div>
+        </div>
+      </div>
+    </div>
+
+
+    <div>
+    <div class="grid-item day-count" style="    margin-top: 2rem;">
+
+      <div class="counter">150</div>
+      <div class="counter-label">DAYS</div>
+    </div>
+      <div class="grid-item hour-count " style="    margin-top: 2rem;">
+        <div class="counter" id="counter">00:00:00</div>
+        <div class="counter-label">HH:MM:SS</div>
+      </div>
+    </div>
+
+    
+    
+
+    <div class="grid-item logs" id="logs">
+      <div class="log-line log-info">[INFO] System boot completed</div>
+      <div class="log-line log-info">[INFO] Display initialized at 3840x2160</div>
+      <div class="log-line log-info">[INFO] Touch service started</div>
+      <div class="log-line log-warning">[WARN] Storage: 12/32GB (37.5%)</div>
+      <div class="log-line log-info">[INFO] Network connected: 192.168.1.5</div>
+    </div>
+  </div>
+
+  <script>
+    // Timer functionality
+    const counterEl = document.getElementById('counter');
+    let hours = 0;
+    let minutes = 0;
+    let seconds = 0;
+    
+    function formatTime() {
+      return [
+        hours.toString().padStart(2, '0'),
+        minutes.toString().padStart(2, '0'),
+        seconds.toString().padStart(2, '0')
+      ].join('<span class="colon">:</span>');
+    }
+    
+    function updateCounter() {
+      seconds++;
+      
+      if (seconds === 60) {
+        seconds = 0;
+        minutes++;
+      }
+      
+      if (minutes === 60) {
+        minutes = 0;
+        hours++;
+      }
+      
+      counterEl.innerHTML = formatTime();
+    }
+    
+    // Resource monitoring functionality
+    function updateResources() {
+      // CPU - Cortex-A72
+      const cpuUsage = Math.min(100, Math.max(15, Math.floor(Math.random() * 30) + 15 + Math.sin(Date.now()/2000) * 10));
+      document.getElementById('cpu-value').textContent = cpuUsage + '%';
+      document.getElementById('cpu-bar').style.width = cpuUsage + '%';
+      
+      // GPU - Mali-T860
+      const gpuUsage = Math.min(100, Math.max(20, cpuUsage - 5 + Math.sin(Date.now()/2500) * 15));
+      document.getElementById('gpu-value').textContent = gpuUsage + '%';
+      document.getElementById('gpu-bar').style.width = gpuUsage + '%';
+      
+      // Memory
+      const memoryUsed = (2.5 + Math.random() * 0.6).toFixed(1);
+      document.getElementById('memory-value').textContent = memoryUsed + '/4GB';
+      document.getElementById('memory-bar').style.width = ((memoryUsed/4)*100) + '%';
+      
+      setTimeout(updateResources, 2000);
+    }
+    
+    // Add log lines periodically
+    function addLogLine() {
+      const logsEl = document.getElementById('logs');
+      const now = new Date();
+      const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                     now.getMinutes().toString().padStart(2, '0') + ':' + 
+                     now.getSeconds().toString().padStart(2, '0');
+      
+      const logTypes = [
+        {class: 'log-info', msg: '[INFO] System process completed'},
+        {class: 'log-info', msg: '[INFO] Memory optimized'},
+        {class: 'log-warning', msg: '[WARN] CPU temperature: 42°C'},
+        {class: 'log-info', msg: '[INFO] Network traffic: ' + (1.5 + Math.random() * 2).toFixed(1) + ' Mbps'},
+        {class: 'log-info', msg: '[INFO] Display refresh: 60Hz'}
+      ];
+      
+      const logType = logTypes[Math.floor(Math.random() * logTypes.length)];
+      
+      const logLine = document.createElement('div');
+      logLine.className = `log-line ${logType.class}`;
+      logLine.textContent = timeStr + ' ' + logType.msg;
+      
+      logsEl.appendChild(logLine);
+      logsEl.scrollTop = logsEl.scrollHeight;
+      
+      setTimeout(addLogLine, Math.random() * 5000 + 2000);
+    }
+    
+    // Start the counter
+    updateCounter();
+    setInterval(updateCounter, 1000);
+    
+    // Start resource monitoring
+    updateResources();
+    
+    // Start log updates
+    setTimeout(addLogLine, 3000);
+    
+    // Toggle button functionality
+    document.getElementById('modeToggle').addEventListener('click', () => {
+      alert("View mode toggle - could switch between different display modes");
+    });
+  </script>
+</body>
+</html>
